@@ -52,8 +52,11 @@ const TIOCGRS485: c_ulong = 0x542e;
 // bitflags used by rs485 functionality
 bitflags! {
     pub struct Rs485Flags: u32 {
+        /// `true` if enabled
         const SER_RS485_ENABLED        = (1 << 0);
+        /// Logical level for RTS pin when sending
         const SER_RS485_RTS_ON_SEND    = (1 << 1);
+        /// Logical level for RTS pin after sent
         const SER_RS485_RTS_AFTER_SEND = (1 << 2);
         const SER_RS485_RX_DURING_TX   = (1 << 4);
     }
@@ -63,8 +66,8 @@ bitflags! {
 #[derive(Copy, Clone, Debug)]
 /// RS485 serial configuration
 ///
-/// Internally, this structure is the same as a [`struct serial_rs485`]
-///(http://elixir.free-electrons.com/linux/latest/ident/serial_rs485).
+/// Internally, this structure is the same as a [`struct serial_rs485`](http://elixir.free-electrons.com/linux/latest/ident/serial_rs485)
+/// from the `serial.h` linux kernel header
 pub struct SerialRs485 {
     flags: Rs485Flags,
     delay_rts_before_send: u32,
