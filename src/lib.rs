@@ -42,8 +42,8 @@ extern crate bitflags;
 extern crate libc;
 
 use libc::c_ulong;
-use std::{mem, io};
 use std::os::unix::io::{AsRawFd, RawFd};
+use std::{io, mem};
 
 // constants stolen from C libs
 const TIOCSRS485: c_ulong = 0x542f;
@@ -76,6 +76,14 @@ impl SerialRs485 {
     /// Create a new, empty set of serial settings
     ///
     /// All flags will default to "off", delays will be set to 0 ms.
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// let _serial = SerialRs485::new();
+    /// ```
     #[inline]
     pub fn new() -> SerialRs485 {
         unsafe { mem::zeroed() }
@@ -85,6 +93,14 @@ impl SerialRs485 {
     ///
     /// Settings will be loaded from the file descriptor, which must be a
     /// valid serial device support RS485 extensions
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// assert!(SerialRs485::from_fd(0).is_err());
+    /// ```
     #[inline]
     pub fn from_fd(fd: RawFd) -> io::Result<SerialRs485> {
         let mut conf = SerialRs485::new();
@@ -96,7 +112,6 @@ impl SerialRs485 {
         }
 
         Ok(conf)
-
     }
 
     /// Enable RS485 support
@@ -117,6 +132,13 @@ impl SerialRs485 {
     ///
     /// RTS will be set before sending, this setting controls whether
     /// it will be set high (`true`) or low (`false`).
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     #[inline]
     pub fn set_rts_on_send<'a>(&'a mut self, rts_on_send: bool) -> &'a mut Self {
         if rts_on_send {
@@ -132,6 +154,13 @@ impl SerialRs485 {
     ///
     /// RTS will be set after sending, this setting contrls whether
     /// it will be set high (`true`) or low (`false`).
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     #[inline]
     pub fn set_rts_after_send<'a>(&'a mut self, rts_after_send: bool) -> &'a mut Self {
         if rts_after_send {
@@ -147,6 +176,13 @@ impl SerialRs485 {
     ///
     /// If set to non-zero, transmission will not start until
     /// `delays_rts_before_send` milliseconds after RTS has been set
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     #[inline]
     pub fn delay_rts_before_send_ms<'a>(&'a mut self, delay_rts_before_send: u32) -> &'a mut Self {
         self.delay_rts_before_send = delay_rts_before_send;
@@ -157,6 +193,13 @@ impl SerialRs485 {
     ///
     /// If set to non-zero, RTS will be kept high/low for
     /// `delays_rts_after_send` ms after the transmission is complete
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     #[inline]
     pub fn delay_rts_after_send_ms<'a>(&'a mut self, delay_rts_after_send: u32) -> &'a mut Self {
         self.delay_rts_after_send = delay_rts_after_send;
@@ -168,6 +211,13 @@ impl SerialRs485 {
     /// Note that turning off this option sometimes seems to make the UART
     /// misbehave and cut off transmission. For this reason, it is best left on
     /// even when using half-duplex.
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     pub fn set_rx_during_tx<'a>(&'a mut self, set_rx_during_tx: bool) -> &'a mut Self {
         if set_rx_during_tx {
             self.flags |= SER_RS485_RX_DURING_TX
@@ -181,6 +231,13 @@ impl SerialRs485 {
     ///
     /// Applies the constructed configuration a raw filedescriptor using
     /// `ioctl`.
+    ///
+    /// # Examples
+    /// ```rust
+    /// extern crate rs485;
+    /// use rs485::SerialRs485;
+    ///
+    /// ```
     #[inline]
     pub fn set_on_fd(&self, fd: RawFd) -> io::Result<()> {
         let rval = unsafe { libc::ioctl(fd, TIOCSRS485, self as *const SerialRs485) };
@@ -192,7 +249,6 @@ impl SerialRs485 {
         Ok(())
     }
 }
-
 
 /// Rs485 controls
 ///
@@ -226,5 +282,72 @@ impl<T: AsRawFd> Rs485 for T {
         let mut conf = self.get_rs485_conf()?;
         f(&mut conf);
         self.set_rs485_conf(&conf)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new() {
+        SerialRs485::new();
+    }
+
+    #[test]
+    fn from_fd() {
+        assert!(SerialRs485::from_fd(0).is_err());
+    }
+
+    #[test]
+    fn set_enabled() {
+        let mut serial = SerialRs485::new();
+        serial.set_enabled(true);
+        assert_eq!(serial.flags, SER_RS485_ENABLED);
+    }
+
+    #[test]
+    fn set_rts_on_send() {
+        let mut serial = SerialRs485::new();
+        serial.set_rts_on_send(true);
+        assert_eq!(serial.flags, SER_RS485_RTS_ON_SEND);
+    }
+
+    #[test]
+    fn set_rts_after_send() {
+        let mut serial = SerialRs485::new();
+        serial.set_rts_after_send(true);
+        assert_eq!(serial.flags, SER_RS485_RTS_AFTER_SEND);
+    }
+
+    #[test]
+    fn delay_rts_before_send_ms() {
+        let mut serial = SerialRs485::new();
+        assert_eq!(serial.delay_rts_before_send, 0);
+
+        serial.delay_rts_before_send_ms(100);
+        assert_eq!(serial.delay_rts_before_send, 100);
+    }
+
+    #[test]
+    fn delay_rts_after_send_ms() {
+        let mut serial = SerialRs485::new();
+        assert_eq!(serial.delay_rts_after_send, 0);
+
+        serial.delay_rts_after_send_ms(100);
+        assert_eq!(serial.delay_rts_after_send, 100);
+    }
+
+    #[test]
+    fn set_rx_during_tx() {
+        let mut serial = SerialRs485::new();
+        serial.set_rx_during_tx(true);
+        assert_eq!(serial.flags, SER_RS485_RX_DURING_TX);
+    }
+
+    #[test]
+    fn set_on_fd() {
+        let serial = SerialRs485::new();
+        assert!(serial.set_on_fd(0).is_err());
     }
 }
