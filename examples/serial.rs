@@ -9,6 +9,9 @@ use std::env;
 use std::thread;
 use std::time::Duration;
 
+const TTY_PATH1: &str = "/dev/ttyUSB0";
+const TTY_PATH2: &str = "/dev/ttyUSB1";
+
 const SETTINGS: serial::PortSettings = serial::PortSettings {
     baud_rate: serial::Baud9600,
     char_size: serial::Bits8,
@@ -19,11 +22,11 @@ const SETTINGS: serial::PortSettings = serial::PortSettings {
 
 fn main() {
     let mut args = env::args_os().skip(1);
-    let port1 = args.next().expect("Port not set, try: `/dev/ttyUSB0`");
-    let port2 = args.next().expect("Port not set, try: `/dev/ttyUSB1`");
+    let tty_path1 = args.next().unwrap_or_else(|| TTY_PATH1.into() );
+    let port_path2 = args.next().unwrap_or_else(|| TTY_PATH2.into() );
 
-    println!("opening port: {:?}", &port1);
-    let mut port = serial::open(&port1).unwrap();
+    println!("opening port: {:?}", &tty_path1);
+    let mut port = serial::open(&tty_path1).unwrap();
     let mut rs485_settings = SerialRs485::new();
     rs485_settings = *rs485_settings.set_rts_on_send(true);
     port.set_rs485_conf(&rs485_settings)
@@ -32,8 +35,8 @@ fn main() {
         write(&mut port).unwrap();
     });
 
-    println!("opening port: {:?}", &port2);
-    let mut port = serial::open(&port2).unwrap();
+    println!("opening port: {:?}", &port_path2);
+    let mut port = serial::open(&port_path2).unwrap();
     thread::spawn(move || {
         read(&mut port).unwrap();
     });

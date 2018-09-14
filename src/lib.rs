@@ -42,8 +42,8 @@ extern crate bitflags;
 extern crate libc;
 
 use libc::c_ulong;
-use std::{mem, io};
 use std::os::unix::io::{AsRawFd, RawFd};
+use std::{io, mem};
 
 // constants stolen from C libs
 const TIOCSRS485: c_ulong = 0x542f;
@@ -64,7 +64,7 @@ bitflags! {
 /// RS485 serial configuration
 ///
 /// Internally, this structure is the same as a [`struct serial_rs485`]
-///(http://elixir.free-electrons.com/linux/latest/ident/serial_rs485).
+///(<http://elixir.free-electrons.com/linux/latest/ident/serial_rs485>).
 pub struct SerialRs485 {
     flags: Rs485Flags,
     delay_rts_before_send: u32,
@@ -105,7 +105,7 @@ impl SerialRs485 {
     ///
     /// let mut port = serial::open("/dev/ttyUSB0").unwrap();
     /// let mut rs485_settings = SerialRs485::new();
-    /// port.set_rs485_conf(&rs485_settings);
+    /// port.set_rs485_conf(&rs485_settings).expect("Could not add the rs485_settings to the serial port");
     /// let mut buf = [0u8; 10];
     /// port.read(&mut buf);
     /// ```
@@ -120,7 +120,6 @@ impl SerialRs485 {
         }
 
         Ok(conf)
-
     }
 
     /// Enable RS485 support
@@ -258,7 +257,6 @@ impl SerialRs485 {
         Ok(())
     }
 }
-
 
 /// Rs485 controls
 ///
