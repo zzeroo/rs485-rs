@@ -1,21 +1,19 @@
+extern crate rs485;
 /// This Example shows how to interact with the `serial-rs` crate
 ///
 extern crate serial;
-extern crate rs485;
 
+use rs485::*;
 use serial::prelude::*;
 use std::env;
-use std::io::prelude::*;
 use std::thread;
 use std::time::Duration;
-use rs485::*;
-
 
 const SETTINGS: serial::PortSettings = serial::PortSettings {
-    baud_rate:    serial::Baud9600,
-    char_size:    serial::Bits8,
-    parity:       serial::ParityNone,
-    stop_bits:    serial::Stop1,
+    baud_rate: serial::Baud9600,
+    char_size: serial::Bits8,
+    parity: serial::ParityNone,
+    stop_bits: serial::Stop1,
     flow_control: serial::FlowNone,
 };
 
@@ -27,10 +25,9 @@ fn main() {
     println!("opening port: {:?}", &port1);
     let mut port = serial::open(&port1).unwrap();
     let mut rs485_settings = SerialRs485::new();
-    println!("{:?}", rs485_settings);;
-    rs485_settings = port.get_rs485_conf().unwrap();
-    println!("{:?}", rs485_settings);;
-    port.set_rs485_conf(&rs485_settings);
+    rs485_settings = *rs485_settings.set_rts_on_send(true);
+    port.set_rs485_conf(&rs485_settings)
+        .expect("Could not add the rs485 settings to port");
     thread::spawn(move || {
         write(&mut port).unwrap();
     });

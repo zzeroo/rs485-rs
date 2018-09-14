@@ -95,11 +95,19 @@ impl SerialRs485 {
     /// valid serial device support RS485 extensions
     ///
     /// # Examples
-    /// ```rust
+    /// ```rust,no_run
+    /// extern crate serial;
     /// extern crate rs485;
-    /// use rs485::SerialRs485;
     ///
-    /// assert!(SerialRs485::from_fd(0).is_err());
+    /// use serial::prelude::*;
+    /// use std::io::prelude::*;
+    /// use rs485::*;
+    ///
+    /// let mut port = serial::open("/dev/ttyUSB0").unwrap();
+    /// let mut rs485_settings = SerialRs485::new();
+    /// port.set_rs485_conf(&rs485_settings);
+    /// let mut buf = [0u8; 10];
+    /// port.read(&mut buf);
     /// ```
     #[inline]
     pub fn from_fd(fd: RawFd) -> io::Result<SerialRs485> {
