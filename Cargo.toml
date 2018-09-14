@@ -10,3 +10,6 @@ documentation = "https://docs.rs/rs485"
 [dependencies]
 bitflags = "0.9.1"
 libc = "0.2.24"
+
+[dev-dependencies]
+serial = "0.4"
